@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     "core",
+    "chat",
 ]
 
 REST_FRAMEWORK = {
