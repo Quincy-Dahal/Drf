@@ -44,6 +44,12 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
 }
 
+# --- Ollama / local LLM ---
+OLLAMA_BASE_URL = env('OLLAMA_BASE_URL', default='http://127.0.0.1:11434')
+OLLAMA_MODEL = env('OLLAMA_MODEL', default='qwen3:4b')
+OLLAMA_TIMEOUT = env.int('OLLAMA_TIMEOUT', default=120)
+OLLAMA_KEEP_ALIVE = env('OLLAMA_KEEP_ALIVE', default='10m')
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
