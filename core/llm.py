@@ -1,7 +1,7 @@
 """
 core/llm.py
 
-Thin client for the local Ollama server. 
+Thin client for the local Ollama server.
 
 Exposes:
     chat(messages, ...)            - multi-turn call, takes a list of
@@ -10,9 +10,6 @@ Exposes:
     health()                       - checks server reachability + model
                                       availability, never raises
 
-All failures raise a single LLMError with an actionable message, so callers
-(views) can catch one exception type and return a clean 503 instead of
-leaking a raw requests traceback to website visitors.
 """
 
 import requests
@@ -22,6 +19,16 @@ from django.conf import settings
 class LLMError(Exception):
     """Raised when the Ollama server can't be reached or returns an error."""
     pass
+
+RUDRANTRA_SYSTEM_PROMPT = (
+    "You are the support assistant for Rudrantra, an online store selling "
+    "Rudraksha beads. Only discuss Rudrantra's products, Rudraksha types and "
+    "their meanings, pricing, shipping, and returns. If asked about anything "
+    "unrelated, politely decline and steer back to these topics. Keep "
+    "answers brief and to the point."
+)
+
+DEFAULT_MAX_TOKENS = None
 
 
 def _base_url():
@@ -40,15 +47,37 @@ def _keep_alive():
     return getattr(settings, "OLLAMA_KEEP_ALIVE", "10m")
 
 
-def chat(messages, model=None, think=False, timeout=None):
+def chat(
+    messages,
+    model=None,
+    think=True,
+    timeout=None,
+    max_tokens=DEFAULT_MAX_TOKENS,
+    system=RUDRANTRA_SYSTEM_PROMPT,
+):
     """
     Multi-turn call to Ollama's /api/chat endpoint.
 
     messages: list of dicts, e.g. [{"role": "user", "content": "Hi"}]
+    system: injected as the first message, unless `messages` already starts
+        with a system-role message (so conversation history built up across
+        turns doesn't get the prompt duplicated on every call). Pass
+        system=None to skip the restriction entirely.
+    max_tokens: caps generated tokens per reply (Ollama's num_predict).
+        Pass max_tokens=None for no cap.
+    think: this model always reasons regardless of this flag (its template
+        unconditionally opens a <think> block), so think=False just stops
+        Ollama from splitting that reasoning out of the response - it leaks
+        into `content` instead. Keep this True so `content` stays clean and
+        the reasoning goes to the (unused) `message.thinking` field.
+
     Returns the assistant's reply text (str).
     Raises LLMError on any failure (connection, timeout, missing model,
     HTTP error, or an unexpected response shape).
     """
+    if system and (not messages or messages[0].get("role") != "system"):
+        messages = [{"role": "system", "content": system}] + list(messages)
+
     url = f"{_base_url()}/api/chat"
     payload = {
         "model": model or _model(),
@@ -57,6 +86,9 @@ def chat(messages, model=None, think=False, timeout=None):
         "think": think,
         "keep_alive": _keep_alive(),
     }
+    if max_tokens is not None:
+        payload["options"] = {"num_predict": max_tokens}
+
     call_timeout = timeout or _timeout()
 
     try:
@@ -92,19 +124,31 @@ def chat(messages, model=None, think=False, timeout=None):
         ) from exc
 
 
-def ask(prompt, system=None, model=None, think=False, timeout=None):
+def ask(
+    prompt,
+    system=RUDRANTRA_SYSTEM_PROMPT,
+    model=None,
+    think=True,
+    timeout=None,
+    max_tokens=DEFAULT_MAX_TOKENS,
+):
     """
     Single-turn convenience wrapper around chat().
 
     prompt: the user's message (str)
-    system: optional system prompt (str)
+    system: defaults to the Rudrantra-scoped prompt; pass system=None or a
+        different string to override.
     Returns the assistant's reply text (str).
     """
-    messages = []
-    if system:
-        messages.append({"role": "system", "content": system})
-    messages.append({"role": "user", "content": prompt})
-    return chat(messages, model=model, think=think, timeout=timeout)
+    messages = [{"role": "user", "content": prompt}]
+    return chat(
+        messages,
+        model=model,
+        think=think,
+        timeout=timeout,
+        max_tokens=max_tokens,
+        system=system,
+    )
 
 
 def health():
