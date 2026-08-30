@@ -1,31 +1,39 @@
 """
 core/llm.py
 
-Thin client for the local Ollama server.
-
-Exposes:
-    chat(messages, ...)            - multi-turn call, takes a list of
-                                      {"role": ..., "content": ...} dicts
-    ask(prompt, system=None, ...)  - single-turn convenience wrapper
-    health()                       - checks server reachability + model
-                                      availability, never raises
-
 """
+
+import re
 
 import requests
 from django.conf import settings
+
+from .knowledge import RUDRANTRA_KNOWLEDGE_BASE
 
 
 class LLMError(Exception):
     """Raised when the Ollama server can't be reached or returns an error."""
     pass
 
+
+_THINK_TAG_RE = re.compile(r"</?think>", re.IGNORECASE)
+
+
+def _strip_thinking(text):
+    if "</think>" in text:
+        text = text.rsplit("</think>", 1)[-1]
+    text = _THINK_TAG_RE.sub("", text)
+    return text.strip()
+
 RUDRANTRA_SYSTEM_PROMPT = (
     "You are the support assistant for Rudrantra, an online store selling "
     "Rudraksha beads. Only discuss Rudrantra's products, Rudraksha types and "
     "their meanings, pricing, shipping, and returns. If asked about anything "
     "unrelated, politely decline and steer back to these topics. Keep "
-    "answers brief and to the point."
+    "answers brief and to the point. Use only the store information below - "
+    "if something isn't covered here, say so and offer to connect the "
+    "customer with the team rather than guessing.\n"
+    + RUDRANTRA_KNOWLEDGE_BASE
 )
 
 DEFAULT_MAX_TOKENS = None
@@ -50,31 +58,12 @@ def _keep_alive():
 def chat(
     messages,
     model=None,
-    think=True,
+    think=False,
     timeout=None,
     max_tokens=DEFAULT_MAX_TOKENS,
     system=RUDRANTRA_SYSTEM_PROMPT,
 ):
-    """
-    Multi-turn call to Ollama's /api/chat endpoint.
-
-    messages: list of dicts, e.g. [{"role": "user", "content": "Hi"}]
-    system: injected as the first message, unless `messages` already starts
-        with a system-role message (so conversation history built up across
-        turns doesn't get the prompt duplicated on every call). Pass
-        system=None to skip the restriction entirely.
-    max_tokens: caps generated tokens per reply (Ollama's num_predict).
-        Pass max_tokens=None for no cap.
-    think: this model always reasons regardless of this flag (its template
-        unconditionally opens a <think> block), so think=False just stops
-        Ollama from splitting that reasoning out of the response - it leaks
-        into `content` instead. Keep this True so `content` stays clean and
-        the reasoning goes to the (unused) `message.thinking` field.
-
-    Returns the assistant's reply text (str).
-    Raises LLMError on any failure (connection, timeout, missing model,
-    HTTP error, or an unexpected response shape).
-    """
+    
     if system and (not messages or messages[0].get("role") != "system"):
         messages = [{"role": "system", "content": system}] + list(messages)
 
@@ -117,29 +106,24 @@ def chat(
 
     try:
         data = response.json()
-        return data["message"]["content"]
+        content = data["message"]["content"]
     except (ValueError, KeyError) as exc:
         raise LLMError(
             f"Unexpected response shape from Ollama: {response.text[:200]}"
         ) from exc
+
+    return _strip_thinking(content)
 
 
 def ask(
     prompt,
     system=RUDRANTRA_SYSTEM_PROMPT,
     model=None,
-    think=True,
+    think=False,
     timeout=None,
     max_tokens=DEFAULT_MAX_TOKENS,
 ):
-    """
-    Single-turn convenience wrapper around chat().
 
-    prompt: the user's message (str)
-    system: defaults to the Rudrantra-scoped prompt; pass system=None or a
-        different string to override.
-    Returns the assistant's reply text (str).
-    """
     messages = [{"role": "user", "content": prompt}]
     return chat(
         messages,
@@ -155,7 +139,7 @@ def health():
     """
     Checks whether the Ollama server is reachable and the configured model
     is pulled. Never raises - always returns a dict describing status.
-
+    
     Returns:
         {
             "ok": bool,
