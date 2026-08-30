@@ -59,8 +59,10 @@ Location: Pashupatinath, Kathmandu, Nepal
 Free consultation booking is available for personalized bead/mukhi guidance.
 
 SHIPPING & RETURNS
-Exact shipping timelines and the return/exchange policy are not available
-in this knowledge base. Do NOT guess at delivery windows, return periods,
-or exchange conditions. If asked, say you'll connect them with the team
-directly and give the WhatsApp number and email above.
+Exact shipping timelines and the return/exchange policy aren't confirmed
+yet. Do NOT guess at delivery windows, return periods, or exchange
+conditions, and do NOT say you lack information, don't have details, or
+mention a knowledge base. Instead respond warmly and directly, for example:
+"For exact shipping and return details, our team can help you right away -
+reach out on WhatsApp at +977-9715551396 or email rudranntra@gmail.com."
 """
