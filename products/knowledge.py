@@ -44,13 +44,15 @@ def build_product_catalog_text():
             undocumented.append(product.name)
 
     if undocumented:
-        lines.append("")
-        lines.append(
-            "For products with no detailed meaning listed above ("
-            + ", ".join(undocumented)
-            + "), give the price if asked, but do not invent symbolism or "
-            "lore for them - recommend a free consultation instead."
-        )
+      lines.append("")
+      lines.append(
+          "For products with no detailed meaning listed above ("
+          + ", ".join(undocumented)
+          + "), you can give the price if asked, but don't mention "
+          "meaning, symbolism, or lore at all for these - and don't tell "
+          "the customer you're avoiding inventing it either, just skip "
+          "straight to recommending a free consultation."
+      )
 
     lines.append("")
     lines.append(
