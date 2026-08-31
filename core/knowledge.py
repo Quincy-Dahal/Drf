@@ -1,53 +1,23 @@
 """
 core/knowledge.py
+
+Static Rudrantra brand, FAQ, and contact content - the parts of the
+chatbot's grounding that aren't tied to individual products and don't
+change often. The product catalog itself moved to the database (see the
+products app) so it can be updated without a code change; this file holds
+everything else.
+
+IMPORTANT - keep this current:
+- Shipping timelines and the return/exchange policy are NOT included below.
+  Those pages on the live site (rudranntra.com/shipping-policy and
+  /return-policy) render no actual policy text in a plain fetch - either
+  they're client-side rendered in a way that can't be scraped, or the
+  content simply isn't populated yet. Flag this to management: until real
+  policy text exists, the bot is instructed to hand off those questions to
+  WhatsApp/email rather than guess.
 """
 
-RUDRANTRA_KNOWLEDGE_BASE = """
-RUDRANTRA PRODUCT CATALOG
-All beads are 100% Nepal-origin (Arun Valley), lab-certified, and Vedic-
-energized. Rudraksha beads are sold in up to 4 sizes (Small, Medium,
-Collector, Super Collector) at different prices; ranges below span the
-cheapest to priciest available size. "Contact for price" means that size
-has no listed price on the site. These four tiers generally reflect bead
-size and rarity (larger, rarer beads cost more), but exact mm measurements
-per tier aren't published - if asked for precise sizing, say plainly that
-exact measurements aren't listed rather than guessing a number or inventing
-an explanation for the tiers, and offer to connect the customer with the
-team.
-
-1 Mukhi Sawar Rudraksha - rarest and most sacred bead, associated with Lord Shiva. $365-$1,131.
-2 Mukhi Rudraksha - two natural lines, symbolizes duality and harmony. $339-$951.
-3 Mukhi Rudraksha - three lines, represents sacred fire (Agni), symbolizes transformation. $5-$15 (Super Collector: contact for price).
-4 Mukhi Rudraksha - four natural clefts. $3-$15 (Super Collector: contact for price).
-5 Mukhi Rudraksha - the most widely worn Rudraksha; best recommended for meditation and peace, calms the mind and improves focus. $1-$15 (Super Collector: contact for price).
-6 Mukhi Rudraksha - six clefts, symbolizes strength and discipline, associated with Lord Kartikeya. $3-$15 (Super Collector: contact for price).
-7 Mukhi Rudraksha - seven lines, symbolizes abundance and grounding energy, associated with Goddess Mahalakshmi, reflects stability and material balance. $19-$91.
-8 Mukhi Rudraksha - eight divisions, represents Lord Ganesha, symbolizes removal of obstacles. $51-$159.
-9 Mukhi Rudraksha - nine mukhis, for courage and divine protection, helps overcome fears. $69-$199.
-10 Mukhi Rudraksha - ten clefts, associated with Lord Vishnu, represents harmony, stability, and protection from negative influences. $51-$159.
-11 Mukhi Rudraksha - eleven lines representing the eleven Rudras, powerful manifestations of Shiva. $95-$199 (Super Collector: contact for price).
-12 Mukhi Rudraksha - twelve divisions, associated with Lord Surya (the Sun God). $95-$199 (Super Collector: contact for price).
-13 Mukhi Rudraksha - rare collector-tier bead. $159-$339 (Super Collector: contact for price).
-14 Mukhi Rudraksha - fourteen clefts, traditionally associated with Lord Hanuman. $319-$951 (Super Collector: contact for price).
-15 Mukhi Rudraksha - rare collector-tier bead. $339-$1,599.
-16 Mukhi Rudraksha - rare collector-tier bead. $699-$1,599 (Super Collector: contact for price).
-18 Mukhi Rudraksha - rare collector-tier bead. $3,195-$5,100 (Super Collector: contact for price).
-19 Mukhi Rudraksha - rare and revered bead, nineteen naturally formed mukhis. $5,199-$13,995 (Super Collector: contact for price).
-21 Mukhi Rudraksha - one of the rarest and most powerful Rudraksha beads. Contact for price.
-Gauri Shankar Rudraksha - a naturally combined twin bead. $95-$199 (Super Collector: contact for price).
-5 Mukhi Rudraksha Bracelet - Lord Shiva's bead; promotes health, prosperity, protection, focus, willpower, and confidence. $50.
-Siddha Mala - a comprehensive spiritual mala combining 1 to 14 Mukhi beads with Gauri Shankar and Ganesha Rudraksha; a sacred choice for serious practitioners. $1,000.
-
-FREQUENTLY ASKED QUESTIONS (from rudranntra.com/faq)
-Q: Which is the best Rudraksha for meditation and peace?
-A: The 5 Mukhi Rudraksha - widely recommended for calming the mind, reducing stress, and improving focus during meditation; helps balance emotions and supports mental clarity.
- 
-Q: What is Nepali Rudraksha, and why is it considered powerful?
-A: A sacred bead sourced from Nepal, known for larger size, clearer mukhi (lines), and stronger spiritual energy. Believed to have higher vibration and better effectiveness for meditation, peace, and protection than other origins.
- 
-Q: What is Rudrantra Rudraksha?
-A: A premium, certified Rudraksha known for its authenticity and quality, carefully selected to ensure genuine origin and strong spiritual benefits for meditation, peace, and protection.
-
+RUDRANTRA_STATIC_KNOWLEDGE = """
 BRAND & AUTHENTICITY
 Rudrantra sources Rudraksha directly from Nepal's Arun Valley, including
 beads from its own cultivation farm. Every bead goes through a four-pillar
@@ -58,6 +28,16 @@ sourcing (no middlemen), and a numbered Certificate of Authenticity
 included with every order. Beads also undergo ritual purification -
 saltwater cleansing, Rudra mantra chanting, and sankalpa-based energization
 - before dispatch.
+
+FREQUENTLY ASKED QUESTIONS (from rudranntra.com/faq)
+Q: Which is the best Rudraksha for meditation and peace?
+A: The 5 Mukhi Rudraksha - widely recommended for calming the mind, reducing stress, and improving focus during meditation; helps balance emotions and supports mental clarity.
+
+Q: What is Nepali Rudraksha, and why is it considered powerful?
+A: A sacred bead sourced from Nepal, known for larger size, clearer mukhi (lines), and stronger spiritual energy. Believed to have higher vibration and better effectiveness for meditation, peace, and protection than other origins.
+
+Q: What is Rudrantra Rudraksha?
+A: A premium, certified Rudraksha known for its authenticity and quality, carefully selected to ensure genuine origin and strong spiritual benefits for meditation, peace, and protection.
 
 CONTACT & SUPPORT
 WhatsApp: +977-9715551396 (Mon-Sat, 10am-6pm NPT)
