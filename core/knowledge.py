@@ -8,7 +8,12 @@ All beads are 100% Nepal-origin (Arun Valley), lab-certified, and Vedic-
 energized. Rudraksha beads are sold in up to 4 sizes (Small, Medium,
 Collector, Super Collector) at different prices; ranges below span the
 cheapest to priciest available size. "Contact for price" means that size
-has no listed price on the site.
+has no listed price on the site. These four tiers generally reflect bead
+size and rarity (larger, rarer beads cost more), but exact mm measurements
+per tier aren't published - if asked for precise sizing, say plainly that
+exact measurements aren't listed rather than guessing a number or inventing
+an explanation for the tiers, and offer to connect the customer with the
+team.
 
 1 Mukhi Sawar Rudraksha - rarest and most sacred bead, associated with Lord Shiva. $365-$1,131.
 2 Mukhi Rudraksha - two natural lines, symbolizes duality and harmony. $339-$951.
