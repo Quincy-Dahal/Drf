@@ -1,6 +1,5 @@
 """
 core/llm.py
-
 """
 
 import re
@@ -8,7 +7,8 @@ import re
 import requests
 from django.conf import settings
 
-from .knowledge import RUDRANTRA_KNOWLEDGE_BASE
+from .knowledge import RUDRANTRA_STATIC_KNOWLEDGE
+from products.knowledge import build_product_catalog_text
 
 
 class LLMError(Exception):
@@ -20,32 +20,64 @@ _THINK_TAG_RE = re.compile(r"</?think>", re.IGNORECASE)
 
 
 def _strip_thinking(text):
+    """
+    Defensive cleanup for a known Ollama bug (qwen3:4b in particular, see
+    ollama/ollama#12234, #12907, #12917) where "think": false is ignored and
+    the reasoning trace is embedded directly in message.content instead of
+    being suppressed. Handles the case seen in practice where only the
+    closing </think> tag appears (the opening tag is sometimes implicit in
+    the model's chat template rather than emitted as text).
+    """
     if "</think>" in text:
         text = text.rsplit("</think>", 1)[-1]
     text = _THINK_TAG_RE.sub("", text)
     return text.strip()
 
-RUDRANTRA_SYSTEM_PROMPT = (
-    "You are the support assistant for Rudrantra, an online store selling "
-    "Rudraksha beads. Only discuss Rudrantra's products, Rudraksha types and "
-    "their meanings, pricing, shipping, and returns.\n\n"
-    "If a customer asks a Rudraksha/Rudrantra question that isn't covered in "
-    "the store information below (exact shipping times, return policy, exact "
-    "bead sizing/mm measurements, or a bead's meaning that isn't listed), "
-    "don't say you lack information, mention a knowledge base, or invent an "
-    "explanation for the gap - warmly let them know the team will help "
-    "directly, using the contact details below. Phrase this around what "
-    "they actually asked rather than reusing a fixed script word-for-word.\n\n"
-    "If a customer asks a Rudraksha/Rudrantra question that isn't covered in "
-    "the store information below (exact shipping times, return policy, or a "
-    "bead's meaning that isn't listed), don't say you lack information or "
-    "mention a knowledge base - warmly let them know the team will help "
-    "directly, using the contact details below.\n\n"
-    "Keep answers brief and to the point.\n"
-    + RUDRANTRA_KNOWLEDGE_BASE
-)
 
+def build_system_prompt():
+    """
+    Assembles the full system prompt fresh on every call: fixed behavior
+    rules, then the live product catalog (queried from the database via
+    the products app - so admin edits show up on the very next request),
+    then the static brand/FAQ/contact/shipping content from
+    core/knowledge.py.
+
+    Rebuilt per-call rather than cached as a module-level constant,
+    specifically so product changes in Django admin take effect
+    immediately without a server restart.
+    """
+    return (
+        "You are the support assistant for Rudrantra, an online store selling "
+        "Rudraksha beads. Only discuss Rudrantra's products, Rudraksha types and "
+        "their meanings, pricing, shipping, and returns.\n\n"
+        "If a customer asks about something unrelated to Rudrantra or Rudraksha "
+        "entirely (weather, unrelated writing requests, general knowledge, etc.), "
+        "give a short decline and steer back to what you can help with. Do NOT "
+        "mention WhatsApp, email, or any contact details in this case - not even "
+        "as a side note. For example: \"I can only help with Rudraksha questions "
+        "here - want to know about bead meanings, pricing, or our authenticity "
+        "process?\" Contact info is reserved only for genuine store questions "
+        "the team needs to step in on, covered in the next paragraph.\n\n"
+        "If a customer asks a Rudraksha/Rudrantra question that isn't covered in "
+        "the store information below (exact shipping times, return policy, exact "
+        "bead sizing/mm measurements, or a bead's meaning that isn't listed), "
+        "don't say you lack information, mention a knowledge base, or invent an "
+        "explanation for the gap - warmly let them know the team will help "
+        "directly, using the contact details below. Phrase this around what "
+        "they actually asked rather than reusing a fixed script word-for-word.\n\n"
+        "Keep answers brief and to the point.\n"
+        + build_product_catalog_text()
+        + "\n"
+        + RUDRANTRA_STATIC_KNOWLEDGE
+    )
+
+
+# No default cap on reply length for now - answers run as long as the
+# model wants. The max_tokens parameter below still works if a cap is
+# wanted later (pass an int to bound it via Ollama's num_predict option).
 DEFAULT_MAX_TOKENS = None
+
+_BUILD_DEFAULT = object()
 
 
 def _base_url():
@@ -70,9 +102,28 @@ def chat(
     think=False,
     timeout=None,
     max_tokens=DEFAULT_MAX_TOKENS,
-    system=RUDRANTRA_SYSTEM_PROMPT,
+    system=_BUILD_DEFAULT,
 ):
-    
+    """
+    Multi-turn call to Ollama's /api/chat endpoint.
+
+    messages: list of dicts, e.g. [{"role": "user", "content": "Hi"}]
+    system: defaults to the current Rudrantra system prompt, built fresh
+        from the database (see build_system_prompt()). Pass system=None to
+        skip the restriction entirely, or pass a custom string to override.
+        Injected as the first message, unless `messages` already starts
+        with a system-role message (so conversation history built up
+        across turns doesn't get the prompt duplicated on every call).
+    max_tokens: caps generated tokens per reply (Ollama's num_predict).
+        Pass max_tokens=None for no cap.
+
+    Returns the assistant's reply text (str).
+    Raises LLMError on any failure (connection, timeout, missing model,
+    HTTP error, or an unexpected response shape).
+    """
+    if system is _BUILD_DEFAULT:
+        system = build_system_prompt()
+
     if system and (not messages or messages[0].get("role") != "system"):
         messages = [{"role": "system", "content": system}] + list(messages)
 
@@ -126,13 +177,20 @@ def chat(
 
 def ask(
     prompt,
-    system=RUDRANTRA_SYSTEM_PROMPT,
+    system=_BUILD_DEFAULT,
     model=None,
     think=False,
     timeout=None,
     max_tokens=DEFAULT_MAX_TOKENS,
 ):
+    """
+    Single-turn convenience wrapper around chat().
 
+    prompt: the user's message (str)
+    system: defaults to the current Rudrantra system prompt, built fresh;
+        pass system=None or a different string to override.
+    Returns the assistant's reply text (str).
+    """
     messages = [{"role": "user", "content": prompt}]
     return chat(
         messages,
@@ -148,7 +206,7 @@ def health():
     """
     Checks whether the Ollama server is reachable and the configured model
     is pulled. Never raises - always returns a dict describing status.
-    
+
     Returns:
         {
             "ok": bool,
