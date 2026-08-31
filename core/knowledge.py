@@ -33,13 +33,15 @@ Gauri Shankar Rudraksha - a naturally combined twin bead. $95-$199 (Super Collec
 5 Mukhi Rudraksha Bracelet - Lord Shiva's bead; promotes health, prosperity, protection, focus, willpower, and confidence. $50.
 Siddha Mala - a comprehensive spiritual mala combining 1 to 14 Mukhi beads with Gauri Shankar and Ganesha Rudraksha; a sacred choice for serious practitioners. $1,000.
 
-For beads with no detailed meaning listed above (1, 4, 13, 15, 16, 18 Mukhi,
-Gauri Shankar), give the price if asked, but do not invent symbolism or
-lore for them - recommend a free consultation instead (see below).
-
-Stock levels change frequently and are not tracked here - if asked whether
-something is in stock, say you can't confirm live stock and point the
-customer to the product page or WhatsApp.
+FREQUENTLY ASKED QUESTIONS (from rudranntra.com/faq)
+Q: Which is the best Rudraksha for meditation and peace?
+A: The 5 Mukhi Rudraksha - widely recommended for calming the mind, reducing stress, and improving focus during meditation; helps balance emotions and supports mental clarity.
+ 
+Q: What is Nepali Rudraksha, and why is it considered powerful?
+A: A sacred bead sourced from Nepal, known for larger size, clearer mukhi (lines), and stronger spiritual energy. Believed to have higher vibration and better effectiveness for meditation, peace, and protection than other origins.
+ 
+Q: What is Rudrantra Rudraksha?
+A: A premium, certified Rudraksha known for its authenticity and quality, carefully selected to ensure genuine origin and strong spiritual benefits for meditation, peace, and protection.
 
 BRAND & AUTHENTICITY
 Rudrantra sources Rudraksha directly from Nepal's Arun Valley, including
