@@ -72,10 +72,12 @@ def build_system_prompt():
     )
 
 
-# No default cap on reply length for now - answers run as long as the
-# model wants. The max_tokens parameter below still works if a cap is
-# wanted later (pass an int to bound it via Ollama's num_predict option).
-DEFAULT_MAX_TOKENS = None
+# Caps how many tokens the model may generate per reply (Ollama's
+# num_predict). 600 gives enough room for the model's hidden thinking
+# phase plus a full answer without risking a truly runaway reply. Raise
+# it if answers start getting cut off mid-sentence; lower it cautiously -
+# 200 was proven too low and caused raw thinking to leak into replies.
+DEFAULT_MAX_TOKENS = 600
 
 _BUILD_DEFAULT = object()
 
@@ -94,6 +96,14 @@ def _timeout():
 
 def _keep_alive():
     return getattr(settings, "OLLAMA_KEEP_ALIVE", "10m")
+
+
+def _num_thread():
+    # Ollama recommends matching this to PHYSICAL cores, not logical/
+    # hyperthreaded ones - hyperthreading can add contention for this kind
+    # of compute-bound workload rather than helping. None means "let
+    # Ollama auto-detect" (its own default behavior).
+    return getattr(settings, "OLLAMA_NUM_THREAD", None)
 
 
 def chat(
@@ -135,8 +145,14 @@ def chat(
         "think": think,
         "keep_alive": _keep_alive(),
     }
+
+    options = {}
     if max_tokens is not None:
-        payload["options"] = {"num_predict": max_tokens}
+        options["num_predict"] = max_tokens
+    if _num_thread() is not None:
+        options["num_thread"] = _num_thread()
+    if options:
+        payload["options"] = options
 
     call_timeout = timeout or _timeout()
 
