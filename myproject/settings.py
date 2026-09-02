@@ -30,11 +30,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'drf_spectacular',
-    "core",
-    "chat",
-    "products",
+    'core',
+    'chat',
+    'products',
 ]
 
 REST_FRAMEWORK = {
@@ -49,6 +50,7 @@ SPECTACULAR_SETTINGS = {
 
 # --- Ollama / local LLM ---
 OLLAMA_BASE_URL = env('OLLAMA_BASE_URL', default='http://127.0.0.1:11434')
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=['http://localhost:3000'])
 OLLAMA_MODEL = env('OLLAMA_MODEL', default='qwen3:4b')
 OLLAMA_TIMEOUT = env.int('OLLAMA_TIMEOUT', default=120)
 OLLAMA_KEEP_ALIVE = env('OLLAMA_KEEP_ALIVE', default='10m')
@@ -56,6 +58,7 @@ OLLAMA_NUM_THREAD = env.int('OLLAMA_NUM_THREAD', default=4)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
