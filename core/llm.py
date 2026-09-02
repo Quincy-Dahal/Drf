@@ -71,12 +71,6 @@ def build_system_prompt():
         + RUDRANTRA_STATIC_KNOWLEDGE
     )
 
-
-# Caps how many tokens the model may generate per reply (Ollama's
-# num_predict). 600 gives enough room for the model's hidden thinking
-# phase plus a full answer without risking a truly runaway reply. Raise
-# it if answers start getting cut off mid-sentence; lower it cautiously -
-# 200 was proven too low and caused raw thinking to leak into replies.
 DEFAULT_MAX_TOKENS = 600
 
 _BUILD_DEFAULT = object()
@@ -104,6 +98,14 @@ def _num_thread():
     # of compute-bound workload rather than helping. None means "let
     # Ollama auto-detect" (its own default behavior).
     return getattr(settings, "OLLAMA_NUM_THREAD", None)
+
+def _temperature():
+    # Lower temperature (Ollama's default is ~0.8) trades some naturalness
+    # of phrasing for more consistent, deterministic word choices - worth
+    # trying for a grounded lookup task where getting the right number
+    # matters more than sounding varied. None means "use Ollama's default".
+    return getattr(settings, "OLLAMA_TEMPERATURE", None)
+
 
 
 def chat(
@@ -151,6 +153,8 @@ def chat(
         options["num_predict"] = max_tokens
     if _num_thread() is not None:
         options["num_thread"] = _num_thread()
+    if _temperature() is not None:
+        options["temperature"] = _temperature() 
     if options:
         payload["options"] = options
 

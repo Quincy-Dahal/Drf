@@ -55,6 +55,7 @@ OLLAMA_MODEL = env('OLLAMA_MODEL', default='qwen3:4b')
 OLLAMA_TIMEOUT = env.int('OLLAMA_TIMEOUT', default=120)
 OLLAMA_KEEP_ALIVE = env('OLLAMA_KEEP_ALIVE', default='10m')
 OLLAMA_NUM_THREAD = env.int('OLLAMA_NUM_THREAD', default=4)
+OLLAMA_TEMPERATURE = env.float('OLLAMA_TEMPERATURE', default=0.3)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
