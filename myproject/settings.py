@@ -52,6 +52,7 @@ OLLAMA_BASE_URL = env('OLLAMA_BASE_URL', default='http://127.0.0.1:11434')
 OLLAMA_MODEL = env('OLLAMA_MODEL', default='qwen3:4b')
 OLLAMA_TIMEOUT = env.int('OLLAMA_TIMEOUT', default=120)
 OLLAMA_KEEP_ALIVE = env('OLLAMA_KEEP_ALIVE', default='10m')
+OLLAMA_NUM_THREAD = env.int('OLLAMA_NUM_THREAD', default=4)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
